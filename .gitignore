@@ -1,0 +1,22 @@
+# Environment
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+data-acquisition/
+venv/
+.venv/
+
+# Examples / scratch files
+examples.txt
+
+# OS
+.DS_Store
