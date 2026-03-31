@@ -10,7 +10,7 @@ def strip_emoji_keys(obj):
     return obj
 
 def main():
-    posts = fetch_all_post_ids()[:10]
+    posts = fetch_all_post_ids()[-10:]
     print(f"Found {len(posts)} posts")
 
     overview_results = []
@@ -31,7 +31,9 @@ def main():
         overview_results.append({"snapshot_date": SNAPSHOT_DATE, "post_id": post_id, "data": overview})
         traffic_results.append({"snapshot_date": SNAPSHOT_DATE, "post_id": post_id, "data": details["traffic"]})
         growth_results.append({"snapshot_date": SNAPSHOT_DATE, "post_id": post_id, "data": details["growth"]})
-        comments_results.append({"snapshot_date": SNAPSHOT_DATE, "post_id": post_id, "data": strip_emoji_keys(details["comments"])})
+        for item in details["comments"].get("items", []):
+            body = item.get("comment", {}).get("body")
+            comments_results.append({"snapshot_date": SNAPSHOT_DATE, "post_id": post_id, "body": body})
         time.sleep(1)
 
     subscriber_snapshot = fetch_all_subscribers()
