@@ -32,8 +32,16 @@ def main():
         traffic_results.append({"snapshot_date": SNAPSHOT_DATE, "post_id": post_id, "data": details["traffic"]})
         growth_results.append({"snapshot_date": SNAPSHOT_DATE, "post_id": post_id, "data": details["growth"]})
         for item in details["comments"].get("items", []):
-            body = item.get("comment", {}).get("body")
-            comments_results.append({"snapshot_date": SNAPSHOT_DATE, "post_id": post_id, "body": body})
+            comment = item.get("comment", {})
+            parent_comments = item.get("parentComments", [])
+            parent_comment_id = parent_comments[-1].get("id") if parent_comments else None
+            comments_results.append({
+                "snapshot_date": SNAPSHOT_DATE,
+                "post_id": post_id,
+                "comment_id": comment.get("id"),
+                "parent_comment_id": parent_comment_id,
+                "body": comment.get("body"),
+            })
         time.sleep(1)
 
     subscriber_snapshot = fetch_all_subscribers()
