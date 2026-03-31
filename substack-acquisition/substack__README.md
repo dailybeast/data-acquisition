@@ -1,14 +1,8 @@
-# data-acquisition
+# substack data-acquisition
 
 Data acquisition pipelines for ingesting substack platform data into BigQuery.
 
-## Overview
-
-This repo contains scripts and Cloud Functions for pulling data from external platforms, staging it in GCS, and loading it into BigQuery for analysis.
-
-## Pipelines
-
-### Substack — The Royalist
+### Substack
 
 Fetches post stats and subscriber data from the Substack dashboard API for [The Royalist](https://theroyalist.substack.com) and loads it into BigQuery.
 
