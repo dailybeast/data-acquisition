@@ -6,13 +6,12 @@ from google.cloud import bigquery
 BQ_PROJECT = "data-platform-455517"
 BQ_DATASET = "raw_landing"
 
-TABLE_MAP = {
-    "subscriber_snapshot": "substack_royalist___subscribers_snapshot",
-    "engagement": "substack_royalist___post_engagement",
-    "overview": "substack_royalist___post_overview",
-    "traffic": "substack_royalist___post_traffic",
-    "growth": "substack_royalist___post_growth",
-    "comments": "substack_royalist___post_comments"
+ENDPOINT_TO_TABLE_SUFFIX = {
+    "overview": "post_overview",
+    "traffic": "post_traffic",
+    "growth": "post_growth",
+    "comments": "post_comments",
+    "subscriber_snapshot": "subscribers_snapshot",
 }
 
 def gcs_to_bq(event, context):
@@ -21,12 +20,18 @@ def gcs_to_bq(event, context):
 
     bucket_name = data["bucket"]
     file_name = data["name"]
-    endpoint = file_name.split("/")[-1].replace(".json", "")
-    table_id = TABLE_MAP.get(endpoint)
 
-    if not table_id:
-        print(f"check your table names, cant find a matching endpoint for {endpoint}")
+    # file_name: substack/{publication}/{timestamp}/{endpoint}.json
+    parts = file_name.split("/")
+    publication = parts[1]
+    endpoint = parts[-1].replace(".json", "")
+
+    suffix = ENDPOINT_TO_TABLE_SUFFIX.get(endpoint)
+    if not suffix:
+        print(f"no table mapping for endpoint '{endpoint}' — skipping")
         return
+
+    table_id = f"substack___{suffix}"
 
     gcs_uri = f"gs://{bucket_name}/{file_name}"
     full_table = f"{BQ_PROJECT}.{BQ_DATASET}.{table_id}"
