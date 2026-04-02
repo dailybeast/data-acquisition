@@ -19,7 +19,7 @@ def run_publication(pub):
     base_url = pub["base_url"]
     gcs_prefix = pub["gcs_prefix"]
 
-    posts = fetch_all_post_ids(session, base_url)[:10]
+    posts = fetch_all_post_ids(session, base_url)[:50]
     print(f"[{slug}] Found {len(posts)} posts")
 
     overview_results = []
@@ -36,9 +36,9 @@ def run_publication(pub):
         for p in overview.get("posts", []):
             links = p.get("stats", {}).get("links", [])
             p["stats"]["links"] = [{"text": l[0], "clicks": l[1]} for l in links if isinstance(l, list)]
-        overview_results.append({"snapshot_date": SNAPSHOT_DATE, "publication": slug, "post_id": post_id, "data": overview})
-        traffic_results.append({"snapshot_date": SNAPSHOT_DATE, "publication": slug, "post_id": post_id, "data": details["traffic"]})
-        growth_results.append({"snapshot_date": SNAPSHOT_DATE, "publication": slug, "post_id": post_id, "data": details["growth"]})
+        overview_results.append({"snapshot_date": SNAPSHOT_DATE, "publication": slug, "post_id": post_id, "data": json.dumps(overview)})
+        traffic_results.append({"snapshot_date": SNAPSHOT_DATE, "publication": slug, "post_id": post_id, "data": json.dumps(details["traffic"])})
+        growth_results.append({"snapshot_date": SNAPSHOT_DATE, "publication": slug, "post_id": post_id, "data": json.dumps(details["growth"])})
 
         for item in details["comments"].get("items", []):
             comment = item.get("comment", {})
@@ -47,9 +47,9 @@ def run_publication(pub):
             comments_results.append({
                 "snapshot_date": SNAPSHOT_DATE,
                 "publication": slug,
-                "post_id": post_id,
-                "comment_id": comment.get("id"),
-                "parent_comment_id": parent_comment_id,
+                "post_id": str(post_id),
+                "comment_id": str(comment.get("id")) if comment.get("id") is not None else None,
+                "parent_comment_id": str(parent_comment_id) if parent_comment_id is not None else None,
                 "body": comment.get("body"),
             })
         time.sleep(1)

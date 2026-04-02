@@ -15,6 +15,9 @@ data-acquisition/
 venv/
 .venv/
 
+# Logs
+*.log
+
 # Examples / scratch files
 examples.txt
 

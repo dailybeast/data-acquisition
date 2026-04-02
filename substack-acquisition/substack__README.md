@@ -10,9 +10,9 @@ Fetches post stats and subscriber data from the Substack dashboard API for all p
 | `swamp` | https://theswamp.substack.com |
 | `joannacoles` | https://joannacoles.substack.com |
 
-To add a new publication, add one entry to the `PUBLICATIONS` env var on the Cloud Run Job — no code changes required.
+To add a new publication, add one entry to the `PUBLICATIONS` env var in `raw-storage/run.sh` — no code changes required.
 
-## Data Collected (per run, last 10 posts per publication)
+## Data Collected (per run, last 50 posts per publication)
 
 - Post overview — stats snapshot including views, opens, open rate, CTR, signups, estimated revenue
 - Traffic — referrer sources, device breakdown
@@ -23,10 +23,10 @@ To add a new publication, add one entry to the `PUBLICATIONS` env var on the Clo
 ## Architecture
 
 ```
-Cloud Scheduler
+macOS cron (10am ET daily)
       |
       v
-Cloud Run Job (raw-storage/)
+raw-storage/run.sh
       |  Iterates over all publications in PUBLICATIONS env var
       |  Fetches from Substack dashboard API
       v
@@ -51,15 +51,19 @@ BigQuery — raw_landing dataset (data-platform-455517)
   substack___subscribers_snapshot
 ```
 
+> **Note:** The acquisition script runs locally due to Cloudflare IP restrictions on Substack's API that block cloud datacenter IPs. The laptop must be awake at 10am ET for the job to run. Ensure **System Settings → Battery → prevent automatic sleeping** is enabled.
+
 All tables include a `publication` field to identify the source publication.
 
 ## Project Structure
 
 ```
 substack-acquisition/
-  raw-storage/          # Cloud Run Job — fetches from API and writes to GCS
+  raw-storage/          # Local cron job — fetches from API and writes to GCS
     main.py             # Entry point — iterates publications, orchestrates fetches
     fetch_post_stats.py # Substack API client, retry logic, GCS upload
+    run.sh              # Cron entrypoint — sets env vars and runs main.py
+    run.log             # Output log (not committed)
     .env                # Local env vars (not committed)
   gcs-to-bigquery/      # Cloud Function — GCS → BigQuery loader
     main.py
