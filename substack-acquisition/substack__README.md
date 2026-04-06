@@ -23,7 +23,7 @@ To add a new publication, add one entry to the `PUBLICATIONS` env var in `raw-st
 ## Architecture
 
 ```
-macOS cron (10am ET daily)
+macOS cron (9am ET daily)
       |
       v
 raw-storage/run.sh
