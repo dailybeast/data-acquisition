@@ -79,17 +79,18 @@ def fetch_all_subscribers(session, base_url):
     offset = 0
     limit = 100
     fields = [
-        "user_id", "subscription_created_at", "subscription_id",
+        "user_email_address", "user_id", "subscription_created_at", "subscription_id",
         "subscription_interval", "unsubscribed_at", "is_free_trial",
         "is_gift", "is_subscribed", "is_comp", "first_payment_at",
-        "activity_rating", "subscription_expires_at"
+        "activity_rating", "subscription_expires_at", "stripe_plan_name", "paid_attribution", 
+        "free_attribution"
     ]
 
     while True:
         resp = _request_with_backoff(lambda: session.post(
             f"{base_url}/api/v1/subscriber-stats",
             json={
-                "filters": {"subscription_type": "paid", "order_by_desc_nulls_last": "subscription_created_at"},
+                "filters": {"order_by_desc_nulls_last": "subscription_created_at"},
                 "limit": limit,
                 "offset": offset,
                 "fields": fields

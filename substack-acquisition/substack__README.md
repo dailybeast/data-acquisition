@@ -9,10 +9,12 @@ Fetches post stats and subscriber data from the Substack dashboard API for all p
 | `royalist` | https://theroyalist.substack.com |
 | `swamp` | https://theswamp.substack.com |
 | `joannacoles` | https://joannacoles.substack.com |
+| `howl` | https://michaelwolffnyc.substack.com |
+| `punchup` | https://thepunchup.substack.com |
 
 To add a new publication, add one entry to the `PUBLICATIONS` env var in `raw-storage/run.sh` — no code changes required.
 
-## Data Collected (per run, last 50 posts per publication)
+## Data Collected (per run, last 15 posts per publication)
 
 - Post overview — stats snapshot including views, opens, open rate, CTR, signups, estimated revenue
 - Traffic — referrer sources, device breakdown
@@ -63,6 +65,7 @@ substack-acquisition/
     main.py             # Entry point — iterates publications, orchestrates fetches
     fetch_post_stats.py # Substack API client, retry logic, GCS upload
     run.sh              # Cron entrypoint — sets env vars and runs main.py
+    backfill.sh         # One-shot backfill for new publications (full_history=true)
     run.log             # Output log (not committed)
     .env                # Local env vars (not committed)
   gcs-to-bigquery/      # Cloud Function — GCS → BigQuery loader
@@ -91,6 +94,18 @@ substack-acquisition/
 ```
 
 `sid` is the `substack.sid` session cookie from a logged-in browser session with dashboard access. Refresh it from DevTools → Application → Cookies → `substack.com` when it expires.
+
+## Backfill
+
+When adding a new publication, run `backfill.sh` to load its full post history before the daily cron takes over. It works identically to `run.sh` but sets `"full_history": true` in the publication config, which causes `main.py` to fetch all posts instead of just the most recent 15.
+
+Edit `backfill.sh` to include only the new publication(s), then run it once manually:
+
+```bash
+bash substack-acquisition/raw-storage/backfill.sh
+```
+
+After the backfill completes, add the publication to `run.sh` for ongoing daily pulls.
 
 ## BigQuery
 

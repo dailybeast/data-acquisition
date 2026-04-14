@@ -20,6 +20,7 @@ venv/
 
 # Examples / scratch files
 examples.txt
+*.json
 
 # OS
 .DS_Store

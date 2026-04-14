@@ -36,21 +36,16 @@ Source API / Scraper / Managed Connector
 
 ```
 /
-├── sources/
-│   ├── substack/
-│   │   ├── README.md          # acquisition pattern, auth, jobs, known issues
-│   │   └── royalist/
-│   ├── zephr/
-│   │   ├── README.md
-│   │   └── ...
-│   ├── braintree/
-│   │   ├── README.md
-│   │   └── ...
-│   └── ...
-├── shared/
-│   └── gcs_writer.py          # shared BigQuery/GCS write utilities
-├── .github/
-│   └── workflows/             # Cloud Run job deploy configs
+├── substack-acquisition/
+│   ├── README.md              # acquisition pattern, auth, jobs, known issues
+│   ├── raw-storage/           # local cron job — fetches from Substack API, writes to GCS
+│   │   ├── main.py
+│   │   ├── fetch_post_stats.py
+│   │   ├── run.sh
+│   │   └── backfill.sh
+│   └── gcs-to-bigquery/       # Cloud Function — GCS → BigQuery loader
+│       ├── main.py
+│       └── requirements.txt
 └── README.md
 ```
 
@@ -89,9 +84,11 @@ raw_landing.{source}___{object}
 
 Examples:
 ```
-raw_landing.substack_royalist___post_overview
-raw_landing.substack_royalist___subscribers_snapshot
-raw_landing.zephr___users
+raw_landing.substack___post_overview
+raw_landing.substack___post_traffic
+raw_landing.substack___post_growth
+raw_landing.substack___post_comments
+raw_landing.substack___subscribers_snapshot
 ```
 
 Every landing table must include a `snapshot_date` column (TIMESTAMP, UTC) populated at write time by the acquisition job.
@@ -100,7 +97,7 @@ Every landing table must include a `snapshot_date` column (TIMESTAMP, UTC) popul
 
 ## Adding a New Source
 
-1. Create a directory under `sources/{source_name}/`.
+1. Create a directory under `{source_name}-acquisition/`.
 2. Implement a fetch function that returns the raw API response with no modifications.
 3. Use the shared write utility to append to the appropriate `raw_landing` table.
 4. Add a `snapshot_date` timestamp to every row at write time.

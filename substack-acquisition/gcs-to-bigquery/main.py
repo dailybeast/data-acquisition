@@ -37,12 +37,20 @@ def gcs_to_bq(event, context):
     full_table = f"{BQ_PROJECT}.{BQ_DATASET}.{table_id}"
 
     client = bigquery.Client()
-    job_config = bigquery.LoadJobConfig(
-        source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
-        autodetect=True,
-        write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
-    )
 
+    try:
+        existing_table = client.get_table(full_table)
+        job_config = bigquery.LoadJobConfig(
+            source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+            schema=existing_table.schema,
+            write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+        )
+    except Exception:
+        job_config = bigquery.LoadJobConfig(
+            source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+            autodetect=True,
+            write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+        )
 
     load_job = client.load_table_from_uri(gcs_uri, full_table, job_config=job_config)
     load_job.result()

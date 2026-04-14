@@ -19,7 +19,8 @@ def run_publication(pub):
     base_url = pub["base_url"]
     gcs_prefix = pub["gcs_prefix"]
 
-    posts = fetch_all_post_ids(session, base_url)[:50]
+    all_posts = fetch_all_post_ids(session, base_url)
+    posts = all_posts if pub.get("full_history") else all_posts[:15]
     print(f"[{slug}] Found {len(posts)} posts")
 
     overview_results = []

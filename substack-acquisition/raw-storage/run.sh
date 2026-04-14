@@ -12,7 +12,9 @@ export GCS_BUCKET="data-acquisition-storage"
 export PUBLICATIONS='[
   {"slug": "royalist", "base_url": "https://theroyalist.substack.com", "sid": "s%3AQTV7o-Hza6UkFCzlHN1uLgIVmjIEF0U4.grHasQC3BTbr%2BltpAGODhFqS7Kl7iXeabvc%2FOdGrGr8", "gcs_prefix": "substack/royalist"},
   {"slug": "swamp",    "base_url": "https://theswamp.substack.com",    "sid": "s%3AQTV7o-Hza6UkFCzlHN1uLgIVmjIEF0U4.grHasQC3BTbr%2BltpAGODhFqS7Kl7iXeabvc%2FOdGrGr8", "gcs_prefix": "substack/swamp"},
-  {"slug": "joannacoles", "base_url": "https://joannacoles.substack.com", "sid": "s%3AQTV7o-Hza6UkFCzlHN1uLgIVmjIEF0U4.grHasQC3BTbr%2BltpAGODhFqS7Kl7iXeabvc%2FOdGrGr8", "gcs_prefix": "substack/joannacoles"}
+  {"slug": "joannacoles", "base_url": "https://joannacoles.substack.com", "sid": "s%3AQTV7o-Hza6UkFCzlHN1uLgIVmjIEF0U4.grHasQC3BTbr%2BltpAGODhFqS7Kl7iXeabvc%2FOdGrGr8", "gcs_prefix": "substack/joannacoles"},
+  {"slug": "howl",    "base_url": "https://michaelwolffnyc.substack.com", "sid": "s%3AQTV7o-Hza6UkFCzlHN1uLgIVmjIEF0U4.grHasQC3BTbr%2BltpAGODhFqS7Kl7iXeabvc%2FOdGrGr8", "gcs_prefix": "substack/howl"},
+  {"slug": "punchup",    "base_url": "https://thepunchup.substack.com", "sid": "s%3AQTV7o-Hza6UkFCzlHN1uLgIVmjIEF0U4.grHasQC3BTbr%2BltpAGODhFqS7Kl7iXeabvc%2FOdGrGr8", "gcs_prefix": "substack/punchup"}
 ]'
 
 "$VENV/bin/python" main.py >> "$LOG" 2>&1
