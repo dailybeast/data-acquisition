@@ -37,12 +37,14 @@ Source API / Scraper / Managed Connector
 ```
 /
 ├── substack-acquisition/
-│   ├── README.md              # acquisition pattern, auth, jobs, known issues
-│   ├── raw-storage/           # local cron job — fetches from Substack API, writes to GCS
+│   ├── substack__README.md    # acquisition pattern, auth, jobs, known issues
+│   ├── raw-storage/           # Cloud Run Job — fetches from Substack API, writes to GCS
 │   │   ├── main.py
 │   │   ├── fetch_post_stats.py
-│   │   ├── run.sh
-│   │   └── backfill.sh
+│   │   ├── Dockerfile
+│   │   ├── deploy.sh
+│   │   ├── run.sh             # local execution (testing only)
+│   │   └── backfill.sh        # one-shot backfill for new publications
 │   └── gcs-to-bigquery/       # Cloud Function — GCS → BigQuery loader
 │       ├── main.py
 │       └── requirements.txt

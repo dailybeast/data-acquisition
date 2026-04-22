@@ -12,7 +12,7 @@ Fetches post stats and subscriber data from the Substack dashboard API for all p
 | `howl` | https://michaelwolffnyc.substack.com |
 | `punchup` | https://thepunchup.substack.com |
 
-To add a new publication, add one entry to the `PUBLICATIONS` env var in `raw-storage/run.sh` — no code changes required.
+To add a new publication, add one entry to the `substack-publications` secret in Secret Manager — no code changes required.
 
 ## Data Collected (per run, last 15 posts per publication)
 
@@ -25,12 +25,13 @@ To add a new publication, add one entry to the `PUBLICATIONS` env var in `raw-st
 ## Architecture
 
 ```
-macOS cron (12:01 AM ET daily)
+Cloud Scheduler (daily cron)
       |
       v
-raw-storage/run.sh
-      |  Iterates over all publications in PUBLICATIONS env var
-      |  Fetches from Substack dashboard API
+Cloud Run Job  (substack-raw-storage, us-central1)
+      |  Iterates over all publications in PUBLICATIONS secret
+      |  Fetches from Substack dashboard API via Bright Data proxy
+      |  (proxy routes around Cloudflare's block on GCP datacenter IPs)
       v
 Google Cloud Storage  (data-acquisition-storage)
   substack/{publication}/{timestamp}/
@@ -53,18 +54,18 @@ BigQuery — raw_landing dataset (data-platform-455517)
   substack___subscribers_snapshot
 ```
 
-> **Note:** The acquisition script runs locally due to Cloudflare IP restrictions on Substack's API that block cloud datacenter IPs. The laptop must be awake at 10am ET for the job to run. Ensure **System Settings → Battery → prevent automatic sleeping** is enabled.
-
 All tables include a `publication` field to identify the source publication.
 
 ## Project Structure
 
 ```
 substack-acquisition/
-  raw-storage/          # Local cron job — fetches from API and writes to GCS
+  raw-storage/          # Cloud Run Job — fetches from API and writes to GCS
     main.py             # Entry point — iterates publications, orchestrates fetches
     fetch_post_stats.py # Substack API client, retry logic, GCS upload
-    run.sh              # Cron entrypoint — sets env vars and runs main.py
+    Dockerfile          # Container image for the Cloud Run Job
+    deploy.sh           # Build, push, and deploy the Cloud Run Job
+    run.sh              # Local execution (testing only — not used in production)
     backfill.sh         # One-shot backfill for new publications (full_history=true)
     run.log             # Output log (not committed)
     .env                # Local env vars (not committed)
@@ -75,10 +76,11 @@ substack-acquisition/
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `GCS_BUCKET` | GCS bucket name |
-| `PUBLICATIONS` | JSON array of publication configs (see below) |
+| Variable | Description | Source |
+|----------|-------------|--------|
+| `GCS_BUCKET` | GCS bucket name | Cloud Run Job env var |
+| `PUBLICATIONS` | JSON array of publication configs (see below) | Secret Manager: `substack-publications` |
+| `BRIGHT_DATA_PROXY` | Bright Data proxy URL for routing Substack API requests | Secret Manager: `bright-data-proxy` |
 
 ### PUBLICATIONS format
 
@@ -93,7 +95,23 @@ substack-acquisition/
 ]
 ```
 
-`sid` is the `substack.sid` session cookie from a logged-in browser session with dashboard access. Refresh it from DevTools → Application → Cookies → `substack.com` when it expires.
+`sid` is the `substack.sid` session cookie from a logged-in browser session with dashboard access. Refresh it from DevTools → Application → Cookies → `substack.com` when it expires. Update the `substack-publications` secret in Secret Manager when rotating.
+
+## Deployment
+
+The Cloud Run Job is deployed from `raw-storage/` using `deploy.sh`:
+
+```bash
+bash substack-acquisition/raw-storage/deploy.sh
+```
+
+This builds the Docker image, pushes it to GCR (`gcr.io/data-platform-455517/substack-raw-storage`), and creates or updates the Cloud Run Job in `us-central1`. Secrets (`PUBLICATIONS`, `BRIGHT_DATA_PROXY`) are pulled from Secret Manager at runtime — no local env required for production.
+
+To trigger a manual run:
+
+```bash
+gcloud run jobs execute substack-raw-storage --region us-central1 --project data-platform-455517
+```
 
 ## Backfill
 
@@ -105,7 +123,7 @@ Edit `backfill.sh` to include only the new publication(s), then run it once manu
 bash substack-acquisition/raw-storage/backfill.sh
 ```
 
-After the backfill completes, add the publication to `run.sh` for ongoing daily pulls.
+After the backfill completes, add the publication to the `substack-publications` secret in Secret Manager for ongoing daily pulls.
 
 ## BigQuery
 
