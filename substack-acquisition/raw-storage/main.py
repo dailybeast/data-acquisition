@@ -56,7 +56,7 @@ def run_publication(pub):
         time.sleep(1)
 
     subscriber_snapshot = fetch_all_subscribers(session, base_url)
-    upload_to_gcs([{"snapshot_date": SNAPSHOT_DATE, "publication": slug, "sub": s} for s in subscriber_snapshot], "subscriber_snapshot", gcs_prefix)
+    upload_to_gcs([{"snapshot_date": SNAPSHOT_DATE, "publication": slug, **s} for s in subscriber_snapshot], "subscriber_snapshot", gcs_prefix)
     upload_to_gcs(overview_results, "overview", gcs_prefix)
     upload_to_gcs(traffic_results, "traffic", gcs_prefix)
     upload_to_gcs(growth_results, "growth", gcs_prefix)

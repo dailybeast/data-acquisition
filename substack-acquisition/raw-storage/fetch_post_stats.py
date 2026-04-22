@@ -7,10 +7,15 @@ SNAPSHOT_DATE = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 GCS_BUCKET = os.environ["GCS_BUCKET"]
 
 
-def _request_with_backoff(fn, max_retries=4):
-    """Call fn() and retry on 429/5xx with exponential backoff."""
+def _request_with_backoff(fn, max_retries=6):
     for attempt in range(max_retries):
-        resp = fn()
+        try:
+            resp = fn()
+        except (requests.exceptions.ChunkedEncodingError, requests.exceptions.ConnectionError) as e:
+            wait = 2 ** (attempt + 1)
+            print(f"Connection error ({type(e).__name__}) — waiting {wait}s (attempt {attempt + 1}/{max_retries})")
+            time.sleep(wait)
+            continue
         if resp.status_code == 429:
             wait = int(resp.headers.get("Retry-After", 2 ** (attempt + 2)))
             print(f"Rate limited — waiting {wait}s (attempt {attempt + 1}/{max_retries})")
@@ -22,7 +27,7 @@ def _request_with_backoff(fn, max_retries=4):
         else:
             resp.raise_for_status()
             return resp
-    raise Exception(f"Request failed after {max_retries} attempts — last status {resp.status_code}")
+    raise Exception(f"Request failed after {max_retries} attempts")
 
 
 def make_session(sid):
@@ -79,11 +84,11 @@ def fetch_all_subscribers(session, base_url):
     offset = 0
     limit = 100
     fields = [
-        "user_email_address", "user_id", "subscription_created_at", "subscription_id",
+        "user_email_address", "user_id", "user_name", "subscription_created_at", "subscription_id",
         "subscription_interval", "unsubscribed_at", "is_free_trial",
         "is_gift", "is_subscribed", "is_comp", "first_payment_at",
         "activity_rating", "subscription_expires_at", "stripe_plan_name", "paid_attribution", 
-        "free_attribution"
+        "free_attribution", "country", "total_revenue_generated"
     ]
 
     while True:

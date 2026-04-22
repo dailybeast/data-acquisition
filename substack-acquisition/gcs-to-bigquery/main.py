@@ -44,12 +44,14 @@ def gcs_to_bq(event, context):
             source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
             schema=existing_table.schema,
             write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+            schema_update_options=[bigquery.SchemaUpdateOption.ALLOW_FIELD_ADDITION],
+            ignore_unknown_values=True
         )
     except Exception:
         job_config = bigquery.LoadJobConfig(
             source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
             autodetect=True,
-            write_disposition=bigquery.WriteDisposition.WRITE_APPEND,
+            write_disposition=bigquery.WriteDisposition.WRITE_APPEND
         )
 
     load_job = client.load_table_from_uri(gcs_uri, full_table, job_config=job_config)

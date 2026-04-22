@@ -8,6 +8,7 @@ LOG="$DIR/run.log"
 cd "$DIR"
 
 export PYTHONUNBUFFERED=1
+export GOOGLE_CLOUD_PROJECT="data-platform-455517"
 export GCS_BUCKET="data-acquisition-storage"
 export PUBLICATIONS='[
   {"slug": "royalist", "base_url": "https://theroyalist.substack.com", "sid": "s%3AQTV7o-Hza6UkFCzlHN1uLgIVmjIEF0U4.grHasQC3BTbr%2BltpAGODhFqS7Kl7iXeabvc%2FOdGrGr8", "gcs_prefix": "substack/royalist"},
@@ -17,4 +18,6 @@ export PUBLICATIONS='[
   {"slug": "punchup",    "base_url": "https://thepunchup.substack.com", "sid": "s%3AQTV7o-Hza6UkFCzlHN1uLgIVmjIEF0U4.grHasQC3BTbr%2BltpAGODhFqS7Kl7iXeabvc%2FOdGrGr8", "gcs_prefix": "substack/punchup"}
 ]'
 
+echo "=== $(date '+%Y-%m-%d %H:%M:%S') START ===" >> "$LOG"
 "$VENV/bin/python" main.py >> "$LOG" 2>&1
+echo "=== $(date '+%Y-%m-%d %H:%M:%S') END ===" >> "$LOG"
